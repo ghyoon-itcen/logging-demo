@@ -1,9 +1,11 @@
 package org.springframework.samples.petclinic.system;
 
 import java.util.Random;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -31,19 +33,28 @@ public class LogDemoScheduler {
 
 	@Scheduled(fixedRate = 5000)
 	public void generateRandomLog() {
-		int type = random.nextInt(10);
+		try {
+			MDC.put("reqId", UUID.randomUUID().toString().substring(0, 8));
+			MDC.put("method", "SCHEDULER");
+			MDC.put("uri", "/auto-log");
 
-		if (type < 5) {
-			// 50% 확률로 INFO
-			logger.info("[AUTO] {}", INFO_MESSAGES[random.nextInt(INFO_MESSAGES.length)]);
+			int type = random.nextInt(10);
+
+			if (type < 5) {
+				// 50% 확률로 INFO
+				logger.info("[AUTO] {}", INFO_MESSAGES[random.nextInt(INFO_MESSAGES.length)]);
+			}
+			else if (type < 8) {
+				// 30% 확률로 WARN
+				logger.warn("[AUTO] {}", WARN_MESSAGES[random.nextInt(WARN_MESSAGES.length)]);
+			}
+			else {
+				// 20% 확률로 ERROR
+				logger.error("[AUTO] {}", ERROR_MESSAGES[random.nextInt(ERROR_MESSAGES.length)]);
+			}
 		}
-		else if (type < 8) {
-			// 30% 확률로 WARN
-			logger.warn("[AUTO] {}", WARN_MESSAGES[random.nextInt(WARN_MESSAGES.length)]);
-		}
-		else {
-			// 20% 확률로 ERROR
-			logger.error("[AUTO] {}", ERROR_MESSAGES[random.nextInt(ERROR_MESSAGES.length)]);
+		finally {
+			MDC.clear();
 		}
 	}
 
