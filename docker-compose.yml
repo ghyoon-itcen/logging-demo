@@ -1,0 +1,99 @@
+services:
+  # ============================================================
+  # Spring PetClinic - Spring Boot + H2 (내장 DB)
+  # ============================================================
+  petclinic:
+    image: eclipse-temurin:17-jre
+    container_name: petclinic-log
+    working_dir: /app
+    command: ["java", "-jar", "/app/app.jar"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/deploy:/app
+      - ./data/logs:/app/logs
+    environment:
+      - TZ=Asia/Seoul
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /app/app.jar"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: always
+    networks:
+      - logging-network
+
+  # ============================================================
+  # Prometheus - 메트릭 수집
+  # ============================================================
+  prometheus:
+    image: prom/prometheus:v3.13.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    restart: unless-stopped
+    networks:
+      - logging-network
+
+  # ============================================================
+  # Loki - 로그 저장
+  # ============================================================
+  loki:
+    image: grafana/loki:3.7.3
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml
+      - ./data/loki:/loki
+    restart: unless-stopped
+    networks:
+      - logging-network
+
+  # ============================================================
+  # Alloy - 로그/메트릭 수집 에이전트
+  # ============================================================
+  alloy:
+    image: grafana/alloy:v1.17.1
+    container_name: alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy
+      - ./data/alloy:/var/lib/alloy
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: ["run", "/etc/alloy/config.alloy"]
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - logging-network
+
+  # ============================================================
+  # Grafana - 시각화 대시보드
+  # ============================================================
+  grafana:
+    image: grafana/grafana:13.1.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./data/grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - TZ=Asia/Seoul
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+    networks:
+      - logging-network
+
+networks:
+  logging-network:
+    driver: bridge

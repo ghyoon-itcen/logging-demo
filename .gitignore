@@ -1,0 +1,3 @@
+# data 폴더: deploy만 추적, 나머지 무시
+data/*
+!data/deploy/
