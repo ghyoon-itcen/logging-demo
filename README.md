@@ -81,6 +81,20 @@ docker logs --tail 50 petclinic-log
 
 로그 파일도 호스트에 저장됩니다: `logging-demo/data/logs/petclinic.log`
 
+### 로그 출력 예시
+
+```
+# HTTP 요청
+2025-07-07 10:23:45.123 [http-nio-8080-exec-3] INFO  o.s.s.p.system.LogDemoController - [a3f8b2c1] [GET /demo/logs/info] 사용자 요청 처리 완료 - 정상 동작
+2025-07-07 10:23:46.200 [http-nio-8080-exec-5] ERROR o.s.s.p.system.LogDemoController - [c7d2e401] [GET /demo/logs/error] 데이터베이스 연결 실패 - timeout after 30000ms
+
+# 스케줄러 (5초마다 자동 발생)
+2025-07-07 10:23:50.001 [scheduling-1] WARN  o.s.s.p.system.LogDemoScheduler - [7e2d9f04] [SCHEDULER /auto-log] [AUTO] DB 커넥션 풀 사용률 높음 - 현재 75%
+```
+
+- `[a3f8b2c1]` — 요청별 고유 ID. 같은 ID = 같은 요청에서 발생한 로그
+- `[GET /demo/logs/info]` — HTTP 메서드 + 경로. 스케줄러는 `[SCHEDULER /auto-log]`로 표시
+
 ---
 
 ## Grafana 사용법
