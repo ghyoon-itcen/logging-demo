@@ -66,6 +66,8 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: ["run", "/etc/alloy/config.alloy"]
+    environment:
+      - TZ=Asia/Seoul
     depends_on:
       - loki
     restart: unless-stopped
