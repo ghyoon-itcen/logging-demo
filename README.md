@@ -248,6 +248,7 @@ logging-demo/
 ├── README.md
 ├── scripts/
 │   └── deploy.bat              # 빌드 및 배포 스크립트
+├── spring-petclinic-main/      # Spring PetClinic 소스코드
 ├── alloy/
 │   └── config.alloy            # Alloy 로그 수집 설정
 ├── prometheus/

@@ -5,6 +5,13 @@ echo ============================================
 echo  Spring PetClinic - Build ^& Deploy Script
 echo ============================================
 
+:: Docker 실행 여부 확인
+docker info >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo [ERROR] Docker is not running. Please start Docker Desktop first.
+    goto :end
+)
+
 set PROJECT_ROOT=%~dp0..
 set APP_DIR=%PROJECT_ROOT%\spring-petclinic-main
 set DEPLOY_DIR=%PROJECT_ROOT%\data\deploy
@@ -14,7 +21,7 @@ echo.
 echo [1/3] Checking source code...
 if not exist "%APP_DIR%" (
     echo [ERROR] Source directory not found: %APP_DIR%
-    exit /b 1
+    goto :end
 )
 echo      Source found: %APP_DIR%
 
@@ -32,7 +39,7 @@ docker run --rm ^
 
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Build failed.
-    exit /b 1
+    goto :end
 )
 
 :: 3. 컨테이너 재시작
@@ -52,4 +59,7 @@ echo  Deploy complete!
 echo  App: http://localhost:8080
 echo ============================================
 
+:end
+echo.
+pause
 endlocal
